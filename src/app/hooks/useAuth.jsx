@@ -31,7 +31,6 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             errorCatcher(error);
             const { code, message } = error.response.data.error;
-            console.log(error.response);
             if (code === 400) {
                 if (message === "EMAIL_NOT_FOUND") {
                     const errorObject = {
@@ -102,6 +101,7 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             errorCatcher(error);
         }
+        console.log(currentUser);
     }
     useEffect(() => {
         if (localStorageService.getAccessToken()) {
