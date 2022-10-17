@@ -3,7 +3,9 @@ import PropTypes from "prop-types";
 import axios from "axios";
 import userService from "../services/user.service";
 import { toast } from "react-toastify";
-import { setTokens } from "../services/localStorage.service";
+import localStorageService, {
+    setTokens
+} from "../services/localStorage.service";
 
 const httpAuth = axios.create();
 const AuthContext = React.createContext();
@@ -25,10 +27,11 @@ export const AuthProvider = ({ children }) => {
                 returnSecureToken: true
             });
             setTokens(data);
-            await getUser();
+            getUserData();
         } catch (error) {
             errorCatcher(error);
             const { code, message } = error.response.data.error;
+            console.log(error.response);
             if (code === 400) {
                 if (message === "EMAIL_NOT_FOUND") {
                     const errorObject = {
@@ -36,9 +39,18 @@ export const AuthProvider = ({ children }) => {
                     };
                     throw errorObject;
                 }
+                if (message === "INVALID_PASSWORD") {
+                    const errorObject = {
+                        email: "Email или пароль введены неверно"
+                    };
+                    throw errorObject;
+                }
             }
             throw new Error();
         }
+    }
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1) + min);
     }
     async function signUp({ email, password, ...rest }) {
         const url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${process.env.REACT_APP_FIREBASE_KEY}`;
@@ -49,7 +61,13 @@ export const AuthProvider = ({ children }) => {
                 returnSecureToken: true
             });
             setTokens(data);
-            await createUser({ _id: data.localId, email, ...rest });
+            await createUser({
+                _id: data.localId,
+                email,
+                rate: randomInt(1, 5),
+                completedMeetings: randomInt(0, 200),
+                ...rest
+            });
         } catch (error) {
             errorCatcher(error);
             const { code, message } = error.response.data.error;
@@ -64,17 +82,10 @@ export const AuthProvider = ({ children }) => {
             throw new Error();
         }
     }
-    async function getUser(data) {
-        try {
-            const { content } = userService.get(data);
-            setCurrentUser(content);
-        } catch (error) {
-            errorCatcher(error);
-        }
-    }
     async function createUser(data) {
         try {
-            const { content } = userService.create(data);
+            const { content } = await userService.create(data);
+            console.log(content);
             setCurrentUser(content);
         } catch (error) {
             errorCatcher(error);
@@ -84,6 +95,19 @@ export const AuthProvider = ({ children }) => {
         const { message } = error.response.data;
         setError(message);
     }
+    async function getUserData() {
+        try {
+            const { content } = userService.getCurrentUser();
+            setCurrentUser(content);
+        } catch (error) {
+            errorCatcher(error);
+        }
+    }
+    useEffect(() => {
+        if (localStorageService.getAccessToken()) {
+            getUserData();
+        }
+    }, []);
     useEffect(() => {
         if (error !== null) {
             toast(error);

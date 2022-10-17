@@ -15,6 +15,7 @@ const RegisterForm = () => {
     const [data, setData] = useState({
         email: "",
         password: "",
+        name: "",
         profession: "",
         sex: "male",
         qualities: [],
@@ -46,6 +47,15 @@ const RegisterForm = () => {
             },
             isEmail: {
                 message: "Email введен некорректно"
+            }
+        },
+        name: {
+            isRequired: {
+                message: "Поле имя обязательно для заполнения"
+            },
+            min: {
+                message: "Имя должно состоять минимум из 3 символов",
+                value: 3
             }
         },
         password: {
@@ -117,6 +127,13 @@ const RegisterForm = () => {
                 value={data.password}
                 onChange={handleChange}
                 error={errors.password}
+            />
+            <TextField
+                label="Имя"
+                name="name"
+                value={data.name}
+                onChange={handleChange}
+                error={errors.name}
             />
             <SelectField
                 label="Выбери свою профессию"
