@@ -49,7 +49,7 @@ export const QualitiesProvider = ({ children }) => {
                 isLoading
             }}
         >
-            {children}
+            {!isLoading ? children : "Loading..."}
         </QualitiesContext.Provider>
     );
 };
